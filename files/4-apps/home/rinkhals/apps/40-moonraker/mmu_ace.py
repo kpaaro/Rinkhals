@@ -495,7 +495,19 @@ def hex_to_rgb(hex: str) -> List[int]:
     return [int(hex[i:i+2], 16) for i in (0, 2, 4)]
 
 def hex_to_rgba(hex: str) -> List[int]:
-    return [int(hex[i:i+2], 16) for i in (0, 2, 4, 6)]
+    """Parse RRGGBB or RRGGBBAA, with or without a leading '#'.
+
+    The two shipped UIs disagree: Fluidd echoes back the 8-digit value from the
+    mmu status, while Mainsail forwards Spoolman's 6-digit filament.color_hex.
+    Requiring 8 digits made any colour coming from Spoolman raise ValueError out
+    of the gcode handler.
+    """
+    value = (hex or "").strip().lstrip("#")
+    if len(value) == 6:
+        value += "FF"
+    if len(value) != 8:
+        raise ValueError(f"expected an RRGGBB or RRGGBBAA colour, got {hex!r}")
+    return [int(value[i:i+2], 16) for i in (0, 2, 4, 6)]
 
 def get_material_temperature(material: str) -> int:
     """Get default printing temperature for material type"""

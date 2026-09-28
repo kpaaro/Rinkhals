@@ -471,5 +471,35 @@ class MmuAcePatchStatusTests(unittest.TestCase):
         self.assertEqual(patcher._last_pushed_mmu_status, {})
 
 
+class HexToRgbaTests(unittest.TestCase):
+    """The two shipped UIs send colours in different widths."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_mmu_ace_module()
+
+    ACCEPTED = [
+        ("eight digits, as Fluidd sends",      "FCF6F6FF",  [252, 246, 246, 255]),
+        ("six digits, as Mainsail forwards",   "FF8800",    [255, 136, 0, 255]),
+        ("a leading hash",                     "#FF8800",   [255, 136, 0, 255]),
+        ("surrounding whitespace",             "  FF8800 ", [255, 136, 0, 255]),
+        ("whitespace before the hash",         " #FF8800",  [255, 136, 0, 255]),
+        ("lower case",                         "ff8800",    [255, 136, 0, 255]),
+    ]
+
+    REJECTED = ["nope", "", "FF88", "FF88001122"]
+
+    def test_accepts_the_forms_the_uis_send(self):
+        for label, value, expected in self.ACCEPTED:
+            with self.subTest(label):
+                self.assertEqual(self.module.hex_to_rgba(value), expected)
+
+    def test_rejects_malformed_colours(self):
+        for value in self.REJECTED:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    self.module.hex_to_rgba(value)
+
+
 if __name__ == "__main__":
     unittest.main()
