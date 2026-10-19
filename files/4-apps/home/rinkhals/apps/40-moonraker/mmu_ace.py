@@ -1974,9 +1974,11 @@ class MmuAcePatcher:
 
         host = config.get("host", None)
 
-        # Seconds a gate must read empty before its assignment is dropped; 0 never
-        # drops one, which is what you want when gates hold untagged spools, since
-        # there is no SKU to detect a swap with.
+        # Seconds a gate must read empty before its assignment is dropped. Defaults
+        # to 0, which never drops one: that is what you want when gates hold untagged
+        # spools, since there is no SKU to detect a swap with, and it means an
+        # assignment never disappears without the user doing something. Opt in by
+        # setting a number of seconds, e.g. 300.
         spool_forget_after = config.getfloat(
             "spool_forget_after", MmuAceSpoolStore.DEFAULT_FORGET_AFTER_S
         )

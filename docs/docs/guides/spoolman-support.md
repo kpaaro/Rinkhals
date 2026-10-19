@@ -65,20 +65,19 @@ unmapped gates in one print, expect gaps in the usage figures rather than wrong 
 
 ### When an assignment is forgotten
 
-An assignment is dropped when the spool it referred to is clearly gone:
+An assignment is dropped when a **different** RFID product is inserted in that gate, since
+that is clear evidence the spool it referred to is gone.
 
-- a **different** RFID product is inserted in that gate, or
-- the gate reads **empty** for five minutes.
-
-Both are heuristics about physical spools, so the timeout is configurable in
-`moonraker.custom.conf`:
+Rinkhals can also drop an assignment when a gate has read **empty** for a while, but that is
+**off by default**, so an assignment never disappears without you doing something. To turn it
+on, set the number of seconds in `moonraker.custom.conf`:
 
 ```ini
 [mmu_ace]
-spool_forget_after: 0
+spool_forget_after: 300
 ```
 
-`0` (or any negative value) never drops an assignment on its own.
+`0` (the default, or any negative value) never drops an assignment on a timer.
 
 ### Limitation: spools the ACE cannot tell apart
 
@@ -95,7 +94,7 @@ is not enough:
 Nothing in what the ACE reports can resolve either case, so Rinkhals does not guess. The
 mapped spool's name and colour are shown per gate in the UI, so a stale assignment is visible
 rather than silent — check it after swapping a spool. If you write your own RFID tags with a
-unique SKU per physical roll, neither case applies and `spool_forget_after: 0` is a good fit.
+unique SKU per physical roll, neither case applies and the default `spool_forget_after: 0` is a good fit.
 
 ### Assigning gates automatically
 

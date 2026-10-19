@@ -1598,6 +1598,7 @@ class MmuAceSpoolPersistenceTests(AsyncControllerTestBase):
         self.assertNotIn(1, self.controller._manual_spool_overrides)
 
     def test_forgets_after_the_gate_has_been_empty_long_enough(self):
+        self.controller._spool_store.forget_after = 300  # opt in: off by default
         self.controller.set_manual_spool_id(1, 24)
         hub = build_mixed_hub()
         hub["filament_hubs"][0]["slots"][1]["status"] = "empty"
@@ -1610,7 +1611,22 @@ class MmuAceSpoolPersistenceTests(AsyncControllerTestBase):
 
         self.assertNotIn(1, self.controller._manual_spool_overrides)
 
+    def test_empty_gate_keeps_its_assignment_by_default(self):
+        # spool_forget_after is off unless the user opts in, so an assignment
+        # never disappears without the user doing something.
+        self.assertEqual(self.module.MmuAceSpoolStore.DEFAULT_FORGET_AFTER_S, 0)
+        self.controller.set_manual_spool_id(1, 24)
+        hub = build_mixed_hub()
+        hub["filament_hubs"][0]["slots"][1]["status"] = "empty"
+
+        self.controller._set_ace_status(hub)
+        self.clock += 3600
+        self.controller._set_ace_status(hub)
+
+        self.assertEqual(self.controller._manual_spool_overrides.get(1), 24)
+
     def test_a_brief_empty_reading_does_not_forget(self):
+        self.controller._spool_store.forget_after = 300  # opt in: off by default
         self.controller.set_manual_spool_id(1, 24)
         hub = build_mixed_hub()
         hub["filament_hubs"][0]["slots"][1]["status"] = "empty"
@@ -1878,6 +1894,7 @@ class MmuAceLoadedGateActivationTests(AsyncControllerTestBase):
         spoolman = self.server.add_spoolman()
         self.controller._spool_store.time_fn = lambda: self.clock
         self.clock = 1000.0
+        self.controller._spool_store.forget_after = 300  # opt in: off by default
         self.controller.set_manual_spool_id(1, 24)
         self.controller.ace.loaded_gate = 1
         await self.loop.drain()

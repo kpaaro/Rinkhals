@@ -26,7 +26,10 @@ class MmuAceSpoolStore:
 
     NAMESPACE = "mmu_ace"
     KEY = "spool_assignments"
-    DEFAULT_FORGET_AFTER_S = 300.0
+    # Off by default. Dropping an assignment on a timer is a guess about a physical
+    # spool, and a wrong guess is silent: the next print debits nothing. Users who
+    # want it opt in with spool_forget_after in [mmu_ace].
+    DEFAULT_FORGET_AFTER_S = 0.0
     # How long a previously-readable SKU must stay unreadable before we believe
     # the spool was actually swapped rather than the RFID read having glitched.
     SKU_LOST_GRACE_S = 30.0
